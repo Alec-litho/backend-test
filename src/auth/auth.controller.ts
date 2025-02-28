@@ -25,12 +25,13 @@ export class AuthController {
   async create(@Body() createUserDto: CreateUserDTO) {
     return await this.authService.register(createUserDto);
   }
-  @Post('/login')
+
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Error, some of the fields are not provided',
   })
   @ApiOkResponse({ type: AuthEntity })
+  @Post('/login')
   login(@Body() LoginUserDTO: LoginUserDTO) {
     return this.authService.login(LoginUserDTO);
   }

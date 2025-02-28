@@ -30,7 +30,6 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(loginUserDTO.password, user.password);
 
     if (!isPasswordValid) throw new UnauthorizedException('Invalid password');
-
     return {
       accessToken: this.jwtService.sign({ userId: user.id }),
     };
@@ -39,7 +38,6 @@ export class AuthService {
   async validateJwtUser(userId: number): Promise<{ id: number; role: Role }> {
     const user = await this.prisma.user.findFirst({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User not found`);
-
     return { id: user.id, role: user.role };
   }
 }
