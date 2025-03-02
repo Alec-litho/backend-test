@@ -4,13 +4,24 @@ services:
     restart: always
     ports:
       - "127.0.0.1:5444:5444"
-    environment:
-      - POSTGRES_PASSWORD=20052020
-      - POSTGRES_USER=postgres
-      - POSTGRES_HOST=localhost
-      - POSTGRES_PORT=5432
-      - POSTGRES_DATABASE=test
+    env_file:
+      - ./.env
     volumes:
       - postgres:/var/lib/postgresql/data
+
+  app_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-app
+    environment:
+      - PORT=3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db_dev
+    volumes:
+      - ./src:/app/src
+
 volumes:
   postgres:
