@@ -14,11 +14,11 @@ $ npm run start:dev
 ## Information
 
 - Admin account:
-  name - Alec
+  name - Alec,
   password - 123
 
 - Developer account:
-  name - Sasha
+  name - Sasha,
   password - 777
 
 swagger: http://localhost:3000/api
