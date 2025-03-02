@@ -24,7 +24,7 @@ export class AuthService {
   }
 
   async login(loginUserDTO: LoginUserDTO) {
-    const user = await this.prisma.user.findFirstOrThrow({ where: { name: loginUserDTO.name } });
+    const user = await this.prisma.user.findFirst({ where: { name: loginUserDTO.name } });
     if (!user) throw new NotFoundException(`No user found for name: ${loginUserDTO.name}`);
 
     const isPasswordValid = await bcrypt.compare(loginUserDTO.password, user.password);

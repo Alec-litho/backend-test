@@ -10,13 +10,16 @@ export class TaskService {
   async create(createTaskDto: CreateTaskDto) {
     let currDate = new Date();
     const deadline = createTaskDto.deadline ? createTaskDto.deadline : currDate.setDate(currDate.getDate() + 1); //by default, deadline is 24 hours
-    let task: Prisma.TaskCreateInput = {
-      ...createTaskDto,
+    let taskToUpload: Prisma.TaskCreateInput = {
+      name: createTaskDto.name,
+      description: createTaskDto.description,
       status: Status.inProgress,
-      project: { connect: { id: createTaskDto.projectId } },
-      deadline: new Date(deadline).toISOString().slice(0, 19).replace('T', ' '), //convert js date to sql timestamp
+      project: { connect: { id: createTaskDto.project } },
+      deadline: new Date(deadline).toISOString(),
     };
-    return await this.prisma.task.create({ data: task });
+    const task = await this.prisma.task.create({ data: taskToUpload });
+    await this.prisma.taskToUser.create({ data: { taskId: task.id, userId: createTaskDto.creator } });
+    return task;
   }
   async findAll() {
     let result = await this.prisma.task.findMany();
@@ -31,19 +34,22 @@ export class TaskService {
   }
   async setDeadline(deadline: string, taskId: number) {
     let result = await this.prisma.task.update({ where: { id: taskId }, data: { deadline } });
-    if (!result) throw new HttpException("tasks don't exists", HttpStatus.NOT_FOUND);
+    if (!result) throw new HttpException("task don't exists", HttpStatus.NOT_FOUND);
     return result;
   }
   async changeProject(projectId: number, taskId: number) {
     let result = await this.prisma.task.update({ where: { id: taskId }, data: { projectId } });
-    if (!result) throw new HttpException("tasks don't exists", HttpStatus.NOT_FOUND);
+    if (!result) throw new HttpException("task don't exists", HttpStatus.NOT_FOUND);
     return result;
   }
   async addResponsibleUser(responsibleUserId: number, taskId: number) {
     let result = await this.prisma.taskToUser.create({ data: { taskId, userId: responsibleUserId } });
     return result;
   }
-  remove(id: number) {
-    return `This action removes a #${id} task`;
+  async remove(taskId: number) {
+    const removedRelationship = await this.prisma.taskToUser.deleteMany({ where: { taskId } });
+
+    const removedTask = await this.prisma.task.delete({ where: { id: taskId } });
+    return { removedRelationship, removedTask, description: 'deleted rows' };
   }
 }

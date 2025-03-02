@@ -1,21 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Status } from '@prisma/client';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Role, Status } from '@prisma/client';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Task } from './entities/task.entity';
 import { ChangeStatusDto } from './dto/change-status.dto';
+import { SetDeadlineDto } from './dto/set-deadline.dto';
+import { DeletedTaskResponseDto } from './dto/deleted-task.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('task')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
-
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Task created',
+    type: Task,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Some fields are not provided',
+  })
   @Post()
   create(@Body() createTaskDto: CreateTaskDto) {
     return this.taskService.create(createTaskDto);
   }
-
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.USER])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'change task status' })
   @ApiBody({ type: ChangeStatusDto })
   @ApiResponse({
@@ -31,6 +51,10 @@ export class TaskController {
   changeStatus(@Param('taskId') id: number, @Body() body: { status: Status }) {
     return this.taskService.changeStatus(body.status, id);
   }
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'add responsible user to the task' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -45,6 +69,10 @@ export class TaskController {
   addResponsibleUser(@Param('userId') userId: number, @Param('taskId') taskId: string) {
     return this.taskService.addResponsibleUser(+userId, +taskId);
   }
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.USER])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'set deadline of the task' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -56,9 +84,13 @@ export class TaskController {
     description: 'Task not found',
   })
   @Patch(':taskId/deadline')
-  setDeadline(@Param('id') id: number, @Body() body: { deadline: string }) {
-    return this.taskService.setDeadline(body.deadline, id);
+  setDeadline(@Param('taskId') id: number, @Body() body: SetDeadlineDto) {
+    return this.taskService.setDeadline(body.deadline, +id);
   }
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.USER])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'change board of the task' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -70,14 +102,18 @@ export class TaskController {
     description: 'Task not found',
   })
   @Patch(':taskId/project/:projectId')
-  changeProject(@Param('id') id: string, @Param('projectId') projectId: string) {
+  changeProject(@Param('taskId') id: string, @Param('projectId') projectId: string) {
     return this.taskService.changeProject(+projectId, +id);
   }
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'delete task' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Task successfully deleted',
-    type: Task,
+    type: DeletedTaskResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,

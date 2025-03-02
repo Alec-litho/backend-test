@@ -18,20 +18,4 @@ export class UsersController {
   findAll() {
     return this.usersService.findAll();
   }
-  @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-  @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }
 }

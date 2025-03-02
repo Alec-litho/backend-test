@@ -2,16 +2,19 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateTaskDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'bug in User module' })
   @IsString()
   @IsNotEmpty()
   name: string;
-  @ApiProperty()
+  @ApiProperty({ example: 'User module has bug when importing Prisma module' })
   @IsString()
   description: string;
-  @ApiProperty()
+  @ApiProperty({ example: '2025-03-02T11:33:50.592Z' })
   deadline?: string;
-  @ApiProperty()
+  @ApiProperty({ example: '1' })
   @IsNotEmpty()
-  projectId: number;
+  project: number;
+  @ApiProperty({ example: '1' })
+  @IsNotEmpty()
+  creator: number;
 }

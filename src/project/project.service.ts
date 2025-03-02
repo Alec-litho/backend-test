@@ -27,7 +27,11 @@ export class ProjectService {
     return await this.prisma.project.update({ where: { id }, data: updateProjectDto });
   }
 
-  async remove(id: number) {
-    return await this.prisma.project.delete({ where: { id } });
+  async remove(projectId: number) {
+    const removedRelationship = await this.prisma.projectToUser.deleteMany({ where: { projectId } });
+
+    const removedProject = await this.prisma.project.delete({ where: { id: projectId } });
+
+    return { removedRelationship, removedProject, description: 'deleted rows' };
   }
 }
